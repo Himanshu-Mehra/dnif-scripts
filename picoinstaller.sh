@@ -226,6 +226,7 @@ function podman_compose_check() {
 			echo -e "... \e[0;31m[ERROR] \e[0m\n"
 			echo -e "[-] Updating podman-compose\n"
 			rm -rf /usr/bin/podman-compose&>> /DNIF/install.log
+            pip3 install --upgrade setuptools&>> /DNIF/install.log
 			pip3 install https://github.com/containers/podman-compose/archive/devel.tar.gz&>> /DNIF/install.log
 			sudo ln -s /usr/local/bin/podman-compose /usr/bin/podman-compose&>> /DNIF/install.log
 			echo -e "[-] Installing podman-compose - ... \e[1;32m[DONE] \e[0m\n"
