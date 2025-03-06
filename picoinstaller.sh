@@ -270,6 +270,27 @@ function podman_install() {
 	sudo dnf install -y @container-tools&>> /DNIF/install.log
 }
 
+function python_install() {
+	echo -e "[-] Checking for python3\n"
+	if [ -x "$(command -v python3)" ]; then
+		echo -e "[-] $(python3 --version) version is present\n"
+	else
+		echo -e "[-] Installing python3\n"
+		sudo dnf update -y &>> /DNIF/install.log
+		sudo dnf install -y python3 &>> /DNIF/install.log
+		echo -e "\n[-] Installed $(python3 --version) version\n"
+	fi
+	echo -e "[-] Checking for pip3\n"
+	if [ -x "$(command -v pip3)" ]; then
+		echo -e "[-] $(pip3 --version) version is present\n"
+	else
+		echo -e "[-] Installing pip3\n"
+		#sudo dnf update -y &>> /DNIF/install.log
+		sudo dnf install -y python3-pip &>> /DNIF/install.log
+		echo -e "[-] Installed $(pip3 --version) version\n"
+	fi
+}
+
 tag="v9.4.1"
 
 if [ -r /etc/os-release ]; then
@@ -393,7 +414,7 @@ services:
 
 			echo -n "Operating system compatibility "
 			sleep 2
-			if [[ "$VER" = "8.5" ]] && [[ "$ARCH" = "x86_64" ]];  then # replace 20.04 by the number of release you want
+			if [[ "$VER" = "8.5" ]] && [[ "$ARCH" = "x86_64" ]];  then # replace 8.5 by the number of release you want
 				echo -e " ... \e[1;32m[OK] \e[0m"
 				echo -n "Architecture compatibility "
 				echo -e " ... \e[1;32m[OK] \e[0m\n"
@@ -410,6 +431,7 @@ services:
 					done
 					set_proxy $ProxyUrl
 				fi
+                python_install
 				podman_check
 				podman_compose_check
 				sysctl_check
@@ -457,7 +479,10 @@ services:
 
 				echo -e "[-] Starting container... \n"
 				cd /DNIF/PICO
+                IP=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
 				podman-compose up -d
+                echo -e "[-] Starting container ... \e[1;32m[DONE] \e[0m\n"
+				podman ps
 				echo -e "** Congratulations you have successfully installed the PICO\n"
 				echo -e "**   Activate the PICO ($IP) from the components page\n"
 			else
