@@ -275,7 +275,7 @@ case "${os}" in
                 echo -e "\n[-] Upgrade completed...!\n"
                 ;;
         rhel)
-                container_list=( "core-v9" "console-v9" "datanode-v9" "adapter-v9" "pico-v9" )
+                container_list=( "core-v9" "console-v9" "datanode-v9" "eventbus-v9" "adapter-v9" "pico-v9" )
                 for container_name in "${container_list[@]}"
                 do
                         if [ -e /DNIF/podman-compose.yaml ]; then
@@ -316,6 +316,13 @@ case "${os}" in
                                 if [ "$dc_container_name" == "$container_name" ]; then
                                         dcfound=$dc_container_name
                                         dcversion=$(cat /DNIF/PICO/podman-compose.yaml | grep 'image' | grep 'pico' | awk '{print $2}' | cut -d':' -f2)
+                                fi
+                        fi
+                        if [ -e /DNIF/EB/podman-compose.yaml ]; then
+                                dc_container_name=$(cat /DNIF/EB/podman-compose.yaml | grep "$container_name" | awk '{print $2}')
+                                if [ "$dc_container_name" == "$container_name" ]; then
+                                        dcfound=$dc_container_name
+                                        dcversion=$(cat /DNIF/EB/podman-compose.yaml | grep 'image' | grep 'eventbus' | awk '{print $2}' | cut -d':' -f2 | tr -d '"')
                                 fi
                         fi
                         if [ "$dcfound" == "$container_name" ]; then
@@ -427,6 +434,40 @@ case "${os}" in
                                                 cd /DNIF/PICO
                                                 podman-compose up -d
                                                 podman ps -a
+                                        elif [ "$container_name" == "eventbus-v9" ]; then
+                                                echo -e "[-] Updating eventbus podman-compose..\n"
+                                                file="/DNIF/EB/podman-compose.yaml"
+                                                sed -i 0,/"$dcversion"/s/"$dcversion"/"$tag"/ $file
+                                                echo -e "\n[-] Starting podman container\n"
+                                                cd /DNIF/EB
+                                                podman-compose up -d
+                                                podman ps -a
+
+                                                mad_file="/DNIF/active_microad_path_upgradepre"
+                                                # Loop through each line in the file
+                                                for path in $(cat "$mad_file"); do
+                                                        echo -e "\n[-] Updating micro adapter $path/podman-compose...\n"
+                                                        mad_dcversion=$(cat $path/podman-compose.yaml | grep 'image' | grep 'adapter' | awk '{print $2}' | cut -d':' -f2)
+                                                        int_dcversion=$(echo ${mad_dcversion#v} | tr -d '.')
+                                                        if [[ "$int_dcversion" =~ ^[0-9]{4}$ ]]; then
+                                                                # Remove the last digit
+                                                                int_dcversion=${int_dcversion:0:-1}
+                                                        fi
+                                                        if (( $int_tag == $int_dcversion )); then
+                                                                echo -e  "[-] Version Up-to-date\n"
+                                                        elif (( $int_tag < $int_dcversion )); then
+                                                                echo -e "[-] Version Downgrade not allowed!\n"
+                                                                echo -e "[-] The curent version - $mad_dcversion is greater than the upgrading tag version - $tag\n"
+                                                        elif (( $int_tag > $int_dcversion )); then
+                                                                echo -e "[-] The curent version - $mad_dcversion is lower than the upgrading tag version - $tag\n"
+                                                                echo -e "\n[-] Updating micro adapter $path/podman-compose...\n"
+                                                                sed -i s/"$mad_dcversion"/"$tag"/g $path/podman-compose.yaml
+                                                                echo -e "\n[-] Starting podman container\n"
+                                                                cd $path
+                                                                podman-compose up -d
+                                                                podman ps -a
+                                                        fi                                                      
+                                                done
                                         fi
                                 fi
                         fi
