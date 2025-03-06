@@ -396,6 +396,7 @@ function podman_compose_check() {
 			echo -e "... \e[0;31m[ERROR] \e[0m\n"
 			echo -e "[-] Updating podman-compose\n"
 			rm -rf /usr/bin/podman-compose&>> /DNIF/install.log
+            pip3 install --upgrade setuptools&>> /DNIF/install.log
 			pip3 install https://github.com/containers/podman-compose/archive/devel.tar.gz&>> /DNIF/install.log
 			sudo ln -s /usr/local/bin/podman-compose /usr/bin/podman-compose&>> /DNIF/install.log
 			echo -e "[-] Installing podman-compose - ... \e[1;32m[DONE] \e[0m\n"
@@ -872,7 +873,7 @@ services:
 						echo -e "\n[-] Starting container... \n"
 						podman-compose up -d
 						echo -e "\n[-] Starting container... \e[1;32m[DONE] \e[0m\n"
-
+                        podman ps
 						mkdir -p /DNIF/DL&>> /DNIF/install.log
 						mkdir -p /DNIF/backup/dn&>> /DNIF/install.log
 					
@@ -903,6 +904,7 @@ services:
 						echo -e "\n[-] Starting container... \n"
 						podman-compose up -d
 						echo -e "\n[-] Starting container ... \e[1;32m[DONE] \e[0m"
+                        podman ps
 						echo -e "\n** Congratulations you have successfully installed the CORE \n"
 						;;
 					2)
@@ -941,8 +943,8 @@ services:
 						echo -e "\n[-] Starting container... \n"
 						cd /DNIF/LC
 						podman-compose up -d
-
-
+                        echo -e "\n[-] Starting container... DONE\n"
+                        podman ps
 						echo -e "\n** Congratulations you have successfully installed the Console\n"
 						;;
 					3)
@@ -992,8 +994,10 @@ services:
     container_name: datanode-v9">>/DNIF/DL/podman-compose.yaml
 						echo -e "\n[-] Starting container... \n"
 						cd /DNIF/DL
+                        IP=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
 						podman-compose up -d
-
+                        echo -e "\n[-] Starting container ... \e[1;32m[DONE] \e[0m"
+                        podman ps
 						echo -e "\n** Congratulations you have successfully installed the Datanode\n"
 						echo -e "**   Activate the Datanode ($IP) from the components page\n"
 						;;
@@ -1063,6 +1067,8 @@ services:
 						echo -e "\n[-] Starting container... \n"
 						cd /DNIF/AD
 						podman-compose up -d
+                        echo -e "\n[-] Starting container ... \e[1;32m[DONE] \e[0m\n"
+						podman ps
 						echo -e "\n** Congratulations you have successfully installed the Adapter\n"
 						echo -e "**   Activate the Adapter ($IP) from the components page\n"
 						;;
