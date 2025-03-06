@@ -261,6 +261,7 @@ upgrade_podman_container () {
 		fi
 	elif [[ "$1" == "eventbus-v9" ]]; then
 		echo -e "\n[-] Checking for any running Micro Adapter containers\n"
+        rm -rf /DNIF/active_microad_path_upgradepre
 		list_microadapter=$(podman ps -a --format "{{.Names}}" | grep "adapter-v9")
 		if [ -n "$list_microadapter" ]; then
 			echo -e "[-] Found Micro Adapter podman container's:\n"
@@ -272,7 +273,8 @@ upgrade_podman_container () {
 				mad_current_ver="$(podman ps  -f status=running -f name=$compose_container_name|awk 'NR > 1 {print $2; exit}'|cut -d ":" -f2)"
 				if echo "$list_microadapter" | grep -q "$compose_container_name"; then
 					echo -e "[-] Bringing down the Podman Compose environment of $compose_container_name $mad_current_ver\n"					
-					cd $path
+					echo $path >> /DNIF/active_microad_path_upgradepre
+                    cd $path
 					podman-compose down
 					echo -e "\n[-] Podman container stopped and removed for path: $path\n"
 					podman ps -a
