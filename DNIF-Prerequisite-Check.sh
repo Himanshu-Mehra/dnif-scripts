@@ -593,7 +593,7 @@ port_connectivity() {
 }
 
 #URL connectivity checks
-url_connectiity() {
+url_connectivity() {
 	echo -e "Connectivity Statistics:\n" | tee -a /var/tmp/prechecks.log
 	for site in  https://github.com/ https://raw.githubusercontent.com/ https://hub.docker.com/ https://www.docker.io/ https://hog.dnif.it/
 	do
@@ -753,7 +753,7 @@ case "${COMPONENT^^}" in
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		port_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
-		url_connectiity
+		url_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		selinux_check
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
@@ -794,7 +794,7 @@ case "${COMPONENT^^}" in
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		port_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
-		url_connectiity
+		url_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		selinux_check
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
@@ -835,7 +835,7 @@ case "${COMPONENT^^}" in
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		port_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
-		url_connectiity
+		url_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		selinux_check
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
@@ -876,7 +876,7 @@ case "${COMPONENT^^}" in
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		port_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
-		url_connectiity
+		url_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		selinux_check
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
@@ -915,7 +915,7 @@ case "${COMPONENT^^}" in
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		port_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
-		url_connectiity
+		url_connectivity
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		selinux_check
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
