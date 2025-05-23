@@ -69,54 +69,56 @@ ip_connectivity() {
 		done
 		echo -e "core\t$COREIP\t$CO_HOSTNAME" >> /var/tmp/components.txt
 
-		LC_HOSTNAME=""
-		while [[ -z "$LC_HOSTNAME" || ! "$LC_HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
-			echo -e "\nENTER CONSOLE HOSTNAME: \c"
-			read -r LC_HOSTNAME
-		done
-		LCIP=""
-		while [[ ! $LCIP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
-			echo -e "ENTER CONSOLE IP: \c"
-			read -r LCIP
-		done
-		echo -e "console\t$LCIP\t$LC_HOSTNAME" >> /var/tmp/components.txt
-
-		echo ""
-		read -p "Enter the number of Datanode servers in your environment: " SERVER_COUNT
-
-		# Check if the input is a valid number
-		while ! [[ "$SERVER_COUNT" =~ ^[0-9]+$ && "$SERVER_COUNT" -gt 0 ]]; do
-			echo "Please enter a valid positive number."
-			read -p "Enter the number of servers in your environment: " SERVER_COUNT
-		done
-
-		declare -A SERVER_HOSTNAMES
-		declare -A SERVER_IPS
-
-		for (( i=1; i<=SERVER_COUNT; i++ )); do
-			echo "----- Server #$i -----"
-
-			# Read hostname
-			HOSTNAME=''
-			while [[ -z "$HOSTNAME" || ! "$HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
-				read -p "Enter hostname for server #$i: " HOSTNAME
+		if [ "$COMPONENT" != "5" ]; then
+			LC_HOSTNAME=""
+			while [[ -z "$LC_HOSTNAME" || ! "$LC_HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+				echo -e "\nENTER CONSOLE HOSTNAME: \c"
+				read -r LC_HOSTNAME
 			done
-			SERVER_HOSTNAMES[$i]=$HOSTNAME
-			
-			# Read and validate IP
-			SERVER_IP=""
-			while [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
-				read -p "Enter IP address for server #$i: " SERVER_IP
-				if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-					echo "Invalid IP format. Please enter a valid IP."
-				fi
+			LCIP=""
+			while [[ ! $LCIP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+				echo -e "ENTER CONSOLE IP: \c"
+				read -r LCIP
 			done
-			SERVER_IPS[$i]=$SERVER_IP
-		done
+			echo -e "console\t$LCIP\t$LC_HOSTNAME" >> /var/tmp/components.txt
 
-		for (( i=1; i<=SERVER_COUNT; i++ )); do
-			echo -e "datanode\t${SERVER_IPS[$i]}\t${SERVER_HOSTNAMES[$i]}" >> /var/tmp/components.txt
-		done
+			echo ""
+			read -p "Enter the number of Datanode servers in your environment: " SERVER_COUNT
+
+			# Check if the input is a valid number
+			while ! [[ "$SERVER_COUNT" =~ ^[0-9]+$ && "$SERVER_COUNT" -gt 0 ]]; do
+				echo "Please enter a valid positive number."
+				read -p "Enter the number of servers in your environment: " SERVER_COUNT
+			done
+
+			declare -A SERVER_HOSTNAMES
+			declare -A SERVER_IPS
+
+			for (( i=1; i<=SERVER_COUNT; i++ )); do
+				echo "----- Server #$i -----"
+
+				# Read hostname
+				HOSTNAME=''
+				while [[ -z "$HOSTNAME" || ! "$HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+					read -p "Enter hostname for server #$i: " HOSTNAME
+				done
+				SERVER_HOSTNAMES[$i]=$HOSTNAME
+				
+				# Read and validate IP
+				SERVER_IP=""
+				while [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+					read -p "Enter IP address for server #$i: " SERVER_IP
+					if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+						echo "Invalid IP format. Please enter a valid IP."
+					fi
+				done
+				SERVER_IPS[$i]=$SERVER_IP
+			done
+
+			for (( i=1; i<=SERVER_COUNT; i++ )); do
+				echo -e "datanode\t${SERVER_IPS[$i]}\t${SERVER_HOSTNAMES[$i]}" >> /var/tmp/components.txt
+			done
+		fi
 
 		echo ""
 		read -p "Enter the number of Adapter servers in your environment: " SERVER_COUNT
@@ -154,6 +156,20 @@ ip_connectivity() {
 		for (( i=1; i<=SERVER_COUNT; i++ )); do
 			echo -e "adapter\t${SERVER_IPS[$i]}\t${SERVER_HOSTNAMES[$i]}" >> /var/tmp/components.txt
 		done
+
+		if [ "$COMPONENT" == "5" ]; then
+			PC_HOSTNAME=""
+			while [[ -z "$PC_HOSTNAME" || ! "$PC_HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+				echo -e "\nENTER PICO HOSTNAME: \c"
+				read -r PC_HOSTNAME
+			done
+			PCIP=""
+			while [[ ! $PCIP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+				echo -e "ENTER PICO IP: \c"
+				read -r PCIP
+			done
+			echo -e "pico\t$PCIP\t$PC_HOSTNAME" >> /var/tmp/components.txt
+		fi
 
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 	fi
