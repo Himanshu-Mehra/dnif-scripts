@@ -822,9 +822,9 @@ case "${COMPONENT^^}" in
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		firewall_check
 		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
-		sysbench_check
-		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 		pipo_connectivity
+		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
+		sysbench_check
 		echo -e "----------------------------------------------------------------------------------" | tee -a /var/tmp/prechecks.log
 		;;
 	esac
