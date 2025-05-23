@@ -3,7 +3,7 @@
 
 #-------------------------------------------------Reading inputs-------------------------------------------------------
 
-echo -e "* Select the DNIF component you would like to check Prerequisites for:" | tee -a /var/tmp/prechecks.log
+echo -e "\n* Select the DNIF component you would like to check Prerequisites for:" | tee -a /var/tmp/prechecks.log
 echo -e "    [1] Core (CO)" | tee -a /var/tmp/prechecks.log
 echo -e "    [2] Local Console (LC)" | tee -a /var/tmp/prechecks.log
 echo -e "    [3] Datanode (DN)" | tee -a /var/tmp/prechecks.log
@@ -53,26 +53,130 @@ fi
 
 # ip_connectivity() function is for testing the connectivty using ping command
 ip_connectivity() {
-	
+
+	if [ ! -f /var/tmp/components.txt ]; then
+		echo -e "\nComponent files not found. Proceeding to create a new file:\n" | tee -a /var/tmp/prechecks.log
+		echo -e "component\tserver ip\thostname" > /var/tmp/components.txt
+		CO_HOSTNAME=""
+		while [[ -z "$CO_HOSTNAME" || ! "$CO_HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+			echo -e "ENTER CORE HOSTNAME: \c"
+			read -r CO_HOSTNAME
+		done
+		COREIP=""
+		while [[ ! $COREIP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+			echo -e "ENTER CORE IP: \c"
+			read -r COREIP
+		done
+		echo -e "core\t$COREIP\t$CO_HOSTNAME" >> /var/tmp/components.txt
+
+		LC_HOSTNAME=""
+		while [[ -z "$LC_HOSTNAME" || ! "$LC_HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+			echo -e "\nENTER CONSOLE HOSTNAME: \c"
+			read -r LC_HOSTNAME
+		done
+		LCIP=""
+		while [[ ! $LCIP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+			echo -e "ENTER CONSOLE IP: \c"
+			read -r LCIP
+		done
+		echo -e "console\t$LCIP\t$LC_HOSTNAME" >> /var/tmp/components.txt
+
+		echo ""
+		read -p "Enter the number of Datanode servers in your environment: " SERVER_COUNT
+
+		# Check if the input is a valid number
+		while ! [[ "$SERVER_COUNT" =~ ^[0-9]+$ && "$SERVER_COUNT" -gt 0 ]]; do
+			echo "Please enter a valid positive number."
+			read -p "Enter the number of servers in your environment: " SERVER_COUNT
+		done
+
+		declare -A SERVER_HOSTNAMES
+		declare -A SERVER_IPS
+
+		for (( i=1; i<=SERVER_COUNT; i++ )); do
+			echo "----- Server #$i -----"
+
+			# Read hostname
+			HOSTNAME=''
+			while [[ -z "$HOSTNAME" || ! "$HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+				read -p "Enter hostname for server #$i: " HOSTNAME
+			done
+			SERVER_HOSTNAMES[$i]=$HOSTNAME
+			
+			# Read and validate IP
+			SERVER_IP=""
+			while [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+				read -p "Enter IP address for server #$i: " SERVER_IP
+				if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+					echo "Invalid IP format. Please enter a valid IP."
+				fi
+			done
+			SERVER_IPS[$i]=$SERVER_IP
+		done
+
+		for (( i=1; i<=SERVER_COUNT; i++ )); do
+			echo -e "datanode\t${SERVER_IPS[$i]}\t${SERVER_HOSTNAMES[$i]}" >> /var/tmp/components.txt
+		done
+
+		echo ""
+		read -p "Enter the number of Adapter servers in your environment: " SERVER_COUNT
+
+		# Check if the input is a valid number
+		while ! [[ "$SERVER_COUNT" =~ ^[0-9]+$ && "$SERVER_COUNT" -gt 0 ]]; do
+			echo "Please enter a valid positive number."
+			read -p "Enter the number of servers in your environment: " SERVER_COUNT
+		done
+
+		declare -A SERVER_HOSTNAMES
+		declare -A SERVER_IPS
+
+		for (( i=1; i<=SERVER_COUNT; i++ )); do
+			echo "----- Server #$i -----"
+
+			# Read hostname
+			HOSTNAME=''
+			while [[ -z "$HOSTNAME" || ! "$HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]]; do
+				read -p "Enter hostname for server #$i: " HOSTNAME
+			done
+			SERVER_HOSTNAMES[$i]=$HOSTNAME
+
+			# Read and validate IP
+			SERVER_IP=""
+			while [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
+				read -p "Enter IP address for server #$i: " SERVER_IP
+				if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+					echo "Invalid IP format. Please enter a valid IP."
+				fi
+			done
+			SERVER_IPS[$i]=$SERVER_IP
+		done
+
+		for (( i=1; i<=SERVER_COUNT; i++ )); do
+			echo -e "adapter\t${SERVER_IPS[$i]}\t${SERVER_HOSTNAMES[$i]}" >> /var/tmp/components.txt
+		done
+
+		echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
+	fi
+
 	echo -e "\nTesting connection with ${1} IP:\n" | tee -a /var/tmp/prechecks.log
 
-	ip_addresses=$(cat components.txt | grep -i ${1} | awk '{ print $2 }')	
+	ip_addresses=$(cat /var/tmp/components.txt | grep -i ${1} | awk '{ print $2 }')	
 	for i in $ip_addresses;
 	do
 		printf "Connectivity with $i on port 22\n" | tee -a /var/tmp/prechecks.log
 		nc -z -v $i 22
-		nc -z -v $i 22 &>> prechecks.log
+		nc -z -v $i 22 &>> /var/tmp/prechecks.log
 	done
 
 	echo -e "\nTesting connection with ${1} Hostname:\n" | tee -a /var/tmp/prechecks.log
 	
-	hostname_list=$(cat components.txt | grep -i ${1} | awk '{ print $3 }')
+	hostname_list=$(cat /var/tmp/components.txt | grep -i ${1} | awk '{ print $3 }')
 	for j in $hostname_list;
 	do
 		hip=$(dig $j +short)
 		printf "Connectivity with $j ($hip) on port 22\n" | tee -a /var/tmp/prechecks.log
 		nc -z -v $j 22
-		nc -z -v $j 22 &>> prechecks.log
+		nc -z -v $j 22 &>> /var/tmp/prechecks.log
 	done
 }
 
@@ -80,54 +184,54 @@ pipo_connectivity() {
 	
 	echo -e "\nTesting port connectivity with Adapter IP:\n" | tee -a /var/tmp/prechecks.log
 
-	ip_addresses=$(cat components.txt | grep -i "adapter" | awk '{ print $2 }')	
+	ip_addresses=$(cat /var/tmp/components.txt | grep -i "adapter" | awk '{ print $2 }')	
 	for i in $ip_addresses;
 	do
 		printf "Connectivity with $i on port 7426\n" | tee -a /var/tmp/prechecks.log
 		nc -z -v $i 7426
-		nc -z -v $i 7426 &>> prechecks.log
+		nc -z -v $i 7426 &>> /var/tmp/prechecks.log
 	done
 	
 	echo -e "\nTesting port connectivity with Adapter Hostname:\n" | tee -a /var/tmp/prechecks.log
 
-	hostname_list=$(cat components.txt | grep -i "adapter" | awk '{ print $3 }')
+	hostname_list=$(cat /var/tmp/components.txt | grep -i "adapter" | awk '{ print $3 }')
 	for j in $hostname_list;
 	do
 		printf "Connectivity with $j on port 7426\n" | tee -a /var/tmp/prechecks.log
 		nc -z -v $j 7426 
-		nc -z -v $j 7426 &>> prechecks.log
+		nc -z -v $j 7426 &>> /var/tmp/prechecks.log
 	done
 	
 	echo -e "----------------------------------------------------------------------------------\n" | tee -a /var/tmp/prechecks.log
 
 	echo -e "\nTesting port connectivity with Core IP:\n" | tee -a /var/tmp/prechecks.log
-	cip=$(cat components.txt | grep -i "core" | awk '{ print $2 }')	
+	cip=$(cat /var/tmp/components.txt | grep -i "core" | awk '{ print $2 }')	
 	for k in $cip;
 	do
 		printf "Connectivity with $k on port 1443\n" | tee -a /var/tmp/prechecks.log
 			nc -z -v $k 1443 
-			nc -z -v $k 1443 &>> prechecks.log
+			nc -z -v $k 1443 &>> /var/tmp/prechecks.log
 		printf "Connectivity with $k on port 8086\n" | tee -a /var/tmp/prechecks.log
 			nc -z -v $k 8086 
-			nc -z -v $k 8086 &>> prechecks.log
+			nc -z -v $k 8086 &>> /var/tmp/prechecks.log
 		printf "Connectivity with $k on port 8765\n" | tee -a /var/tmp/prechecks.log
 			nc -z -v $k 8765 
-			nc -z -v $k 8765 &>> prechecks.log
+			nc -z -v $k 8765 &>> /var/tmp/prechecks.log
 	done
 	
 	echo -e "\nTesting port connectivity with Core Hostname:\n" | tee -a /var/tmp/prechecks.log
-	chn=$(cat components.txt | grep -i "core" | awk '{ print $3 }')
+	chn=$(cat /var/tmp/components.txt | grep -i "core" | awk '{ print $3 }')
 	for l in $chn;
 	do
 		printf "Connectivity with $l on port 1443\n" | tee -a /var/tmp/prechecks.log
 			nc -z -v $l 1443 
-			nc -z -v $l 1443 &>> prechecks.log
+			nc -z -v $l 1443 &>> /var/tmp/prechecks.log
 		printf "Connectivity with $l on port 8086\n" | tee -a /var/tmp/prechecks.log
 			nc -z -v $l 8086 
-			nc -z -v $l 8086 &>> prechecks.log
+			nc -z -v $l 8086 &>> /var/tmp/prechecks.log
 		printf "Connectivity with $l on port 8765\n" | tee -a /var/tmp/prechecks.log
 			nc -z -v $l 8765 
-			nc -z -v $l 8765 &>> prechecks.log
+			nc -z -v $l 8765 &>> /var/tmp/prechecks.log
 	done
 
 }
@@ -330,12 +434,12 @@ cpu_check() {
 		fi
 	fi
 
-	echo -e "\nlscpu output:"
-	echo $(lscpu | grep "CPU(s):" | grep -v "NUMA node0")
-	echo $(lscpu | grep "On-line CPU(s) list:")
-	echo $(lscpu | grep "Thread(s) per core:")
-	echo $(lscpu | grep "Core(s) per socket:")
-	echo $(lscpu | grep "Socket(s):")
+	echo -e "\nlscpu output:" | tee -a /var/tmp/prechecks.log
+	echo $(lscpu | grep "CPU(s):" | grep -v "NUMA node0") | tee -a /var/tmp/prechecks.log
+	echo $(lscpu | grep "On-line CPU(s) list:") | tee -a /var/tmp/prechecks.log
+	echo $(lscpu | grep "Thread(s) per core:") | tee -a /var/tmp/prechecks.log
+	echo $(lscpu | grep "Core(s) per socket:") | tee -a /var/tmp/prechecks.log
+	echo $(lscpu | grep "Socket(s):") | tee -a /var/tmp/prechecks.log
 
 }
 
