@@ -566,10 +566,10 @@ case "${os}" in
 				echo -e "    [1] Core (CO)"
 				echo -e "    [2] Console (LC)"
 				echo -e "    [3] Datanode (DN)"
-				echo -e "    [4] Adapter (AD)\n"
+				echo -e "    [4] Adapter (AD)"
 				echo -e "    [5] RA-Gateway (RA)\n"
 				COMP=""
-				while [[ ! $COMP =~ ^[1-4] ]]; do
+				while [[ ! $COMP =~ ^[1-5] ]]; do
 					echo -e "Pick the number corresponding to the component (1 - 4):  \c"
 					read -r COMP
 				done
@@ -1004,9 +1004,10 @@ services:
 				echo -e "    [1] Core (CO)"
 				echo -e "    [2] Console (LC)"
 				echo -e "    [3] Datanode (DN)"
-				echo -e "    [4] Adapter (AD)\n"
+				echo -e "    [4] Adapter (AD)"
+    				echo -e "    [5] RA-Gateway (RA)\n"
 				COMP=""
-				while [[ ! $COMP =~ ^[1-4] ]]; do
+				while [[ ! $COMP =~ ^[1-5] ]]; do
 					echo -e "Pick the number corresponding to the component (1 - 4):  \c"
 							read -r COMP
 				done
