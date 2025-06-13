@@ -514,14 +514,15 @@ function ra_install() {
 	pip3 install -r requirements.txt
 
 	CRON_JOB="* * * * * . /etc/profile; /usr/bin/python3 /DNIF/RA/bloo-ra/system_telemetry/collect_telemetry.py >> /DNIF/RA/log/system_health_telemetry.log 2>&1"
+	UNIQUE_IDENTIFIER="/DNIF/RA/bloo-ra/system_telemetry/collect_telemetry.py"
 
 	# Check if the cron job already exists
-	(crontab -l 2>/dev/null | grep -F "$CRON_JOB") >/dev/null
-
-	if [[ $? -ne 0 ]]; then
-		# Add the new cron job
-		(crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-		echo "RA cron job added."
+ 	if ! crontab -l 2>/dev/null | grep -qF "$UNIQUE_IDENTIFIER"; then
+	    # Add the new cron job
+	    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+	    echo "RA cron job added."
+	else
+	    echo "RA Cron job already exists. Skipping..."
 	fi
 }
 
@@ -655,7 +656,9 @@ services:
       - "\'CORE_IP="$COREIP"\'"
       - "\'UI_IP="$UI_IP"\'"
       - "\'PROXY="$ProxyUrl"\'"
-	  - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
+      
     ulimits:
       memlock:
         soft: -1
@@ -677,7 +680,8 @@ services:
       - /DNIF/backup/dn:/backup
     environment:
       - "\'CORE_IP="$COREIP"\'"
-	  - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
     ulimits:
       memlock:
         soft: -1
@@ -743,6 +747,7 @@ services:
   environment:
    - "\'UI_IP="$UI_IP"\'"
    - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+   - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
    - "\'VERSION="$tag"\'"
   cap_add:
    - NET_ADMIN
@@ -817,7 +822,8 @@ services:
       - /DNIF/backup:/backup
     environment:
       - "\'CORE_IP="$COREIP"\'"
-	  - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
     ulimits:
       memlock:
         soft: -1
@@ -906,6 +912,7 @@ services:
    - "\'HOST_IP="$HOSTIP"\'"
    - "\'PROXY="$ProxyUrl"\'"
    - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+   - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
   tmpfs: /DNIF
   volumes:
    - /DNIF/AD:/dnif
@@ -1086,7 +1093,8 @@ services:
       - "\'CORE_IP="$COREIP"\'"
       - "\'UI_IP="$UI_IP"\'"
       - "\'PROXY="$ProxyUrl"\'"
-	  - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
     ulimits:
       memlock:
         soft: -1
@@ -1118,7 +1126,8 @@ services:
       - /DNIF/backup/dn:/backup
     environment:
       - "\'CORE_IP="$COREIP"\'"
-	  - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
     ulimits:
       memlock:
         soft: -1
@@ -1176,6 +1185,7 @@ services:
   environment:
    - "\'UI_IP="$UI_IP"\'"
    - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+   - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
    - "\'VERSION="$tag"\'"
   cap_add:
    - NET_ADMIN
@@ -1245,7 +1255,8 @@ services:
       - /DNIF/backup:/backup
     environment:
       - "\'CORE_IP="$COREIP"\'"
-	  - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+      - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
     ulimits:
       memlock:
         soft: -1
@@ -1334,6 +1345,7 @@ services:
    - "\'HOST_IP="$HOSTIP"\'"
    - "\'PROXY="$ProxyUrl"\'"
    - "\'REMOTE_ADMIN_IP="$REMOTE_ADMIN_IP"\'"
+   - "\'REMOTE_ADMIN="$REMOTE_ADMIN"\'"
   tmpfs: /DNIF
   volumes:
    - /DNIF/AD:/dnif
