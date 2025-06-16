@@ -612,6 +612,8 @@ function ra_install() {
 		# Add the new cron job
 		(crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
 		echo "RA cron job added."
+  
+  		install_zerotier
 	else
 	    echo "RA Cron job already exists. Skipping..."
 	fi
@@ -1049,6 +1051,7 @@ services:
 						fi
 						#Pulling the latest Docker image after verifying against the existing Docker images.
 						docker_image "prom/pushgateway"
+      						install_zerotier
 						cd /
 						sudo mkdir -p /DNIF
 						sudo mkdir -p /DNIF/RA
@@ -1476,6 +1479,7 @@ services:
 						fi
 						#Pulling the latest Docker image after verifying against the existing Docker images.
 						podman_image "prom/pushgateway"
+      						install_zerotier
 						cd /
 						sudo mkdir -p /DNIF
 						sudo mkdir -p /DNIF/RA
