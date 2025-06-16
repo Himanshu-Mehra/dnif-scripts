@@ -557,9 +557,10 @@ function ra_install() {
 			fi
 		fi
 		tar -xvf /var/tmp/system_telemetry_collector.tar.gz -C /DNIF/RA/ &>> /DNIF/install.log
-		
+  		
+		echo -e "\n[-] Installing RA dependencies."
 		if [[ $os == "ubuntu" ]]; then
-			apt-get update && apt-get install -y \
+			apt-get update &>> /DNIF/install.log && apt-get install -y \
 				python3 \
 				python3-pip \
 				smartmontools \
@@ -569,11 +570,11 @@ function ra_install() {
 				net-tools \
 				sudo \
 				auditd \
-				iptables \
-				&& rm -rf /var/lib/apt/lists/*
-	
+				iptables &>> /DNIF/install.log \
+				&& rm -rf /var/lib/apt/lists/* &>> /DNIF/install.log
+    			echo -e "\n[-] RA dependencies installed."
 		elif [[ $os == "centos" || $os == "rhel" ]]; then
-			dnf update -y && dnf install -y \
+			dnf update -y &>> /DNIF/install.log && dnf install -y \
 				python3 \
 				python3-pip \
 				smartmontools \
@@ -583,12 +584,13 @@ function ra_install() {
 				net-tools \
 				sudo \
 				audit \
-				iptables \
-				&& dnf clean all
+				iptables &>> /DNIF/install.log \
+				&& dnf clean all &>> /DNIF/install.log
+    				echo -e "\n[-] RA dependencies installed."
 		fi
 
 		cd /DNIF/RA/bloo-ra/system_telemetry/
-		pip3 install -r requirements.txt
+		pip3 install -r requirements.txt &>> /DNIF/install.log
 
        		DEFAULT_PORT=9200
 		PORT=""
@@ -607,7 +609,7 @@ function ra_install() {
 		    	fi
 		done
 		echo "Using port: $PORT"
-  		python3 /DNIF/RA/bloo-ra/system_telemetry/config_loader.py --prometheus-host $REMOTE_ADMIN_IP --prometheus-port $PORT
+  		python3 /DNIF/RA/bloo-ra/system_telemetry/config_loader.py --prometheus-host $REMOTE_ADMIN_IP --prometheus-port $PORT &>> /DNIF/install.log
 
 		# Add the new cron job
 		(crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
