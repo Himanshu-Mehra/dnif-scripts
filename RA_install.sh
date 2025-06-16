@@ -465,62 +465,83 @@ function podman_install() {
 }
 
 function ra_install() {
-	mkdir -p /DNIF/RA
-	ra_url="https://raw.githubusercontent.com/bloo-team/dnif-installer/main/system_telemetry_collector.tar.gz"
-	ra_tarball="/var/tmp/system_telemetry_collector.tar.gz"
-	if [[ -f "$ra_tarball" ]]; then
-		echo "RA tarball already exists at $ra_tarball. Skipping download."
-
-	else
-		echo "Downloading RA tarball..."
-		wget "$ra_url" -O "$ra_tarball"&>> /DNIF/install.log
-		if [[ $? -ne 0 ]]; then
-			echo "Download failed. Exiting."
-			exit 1
-		fi
-	fi
-	tar -xvf /var/tmp/system_telemetry_collector.tar.gz -C /DNIF/RA/ &>> /DNIF/install.log
 	
-	if [[ $os == "ubuntu" ]]; then
-		apt-get update && apt-get install -y \
-			python3 \
-			python3-pip \
-			smartmontools \
-			sysstat \
-			lm-sensors \
-			iproute2 \
-			net-tools \
-			sudo \
-			auditd \
-			iptables \
-			&& rm -rf /var/lib/apt/lists/*
-
-	elif [[ $os == "centos" || $os == "rhel" ]]; then
-		dnf update -y && dnf install -y \
-			python3 \
-			python3-pip \
-			smartmontools \
-			sysstat \
-			lm_sensors \
-			iproute \
-			net-tools \
-			sudo \
-			audit \
-			iptables \
-			&& dnf clean all
-	fi
-
-	cd /DNIF/RA/bloo-ra/system_telemetry/
-	pip3 install -r requirements.txt
-
-	CRON_JOB="* * * * * . /etc/profile; /usr/bin/python3 /DNIF/RA/bloo-ra/system_telemetry/collect_telemetry.py >> /DNIF/RA/log/system_health_telemetry.log 2>&1"
+ 	CRON_JOB="* * * * * . /etc/profile; /usr/bin/python3 /DNIF/RA/bloo-ra/system_telemetry/collect_telemetry.py >> /DNIF/RA/log/system_health_telemetry.log 2>&1"
 	UNIQUE_IDENTIFIER="/DNIF/RA/bloo-ra/system_telemetry/collect_telemetry.py"
 
 	# Check if the cron job already exists
  	if ! crontab -l 2>/dev/null | grep -qF "$UNIQUE_IDENTIFIER"; then
-	    # Add the new cron job
-	    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-	    echo "RA cron job added."
+  		mkdir -p /DNIF/RA
+    		mkdir -p /DNIF/RA/log
+		mkdir -p /DNIF/RA/config
+		ra_url="https://raw.githubusercontent.com/bloo-team/dnif-installer/main/system_telemetry_collector.tar.gz"
+		ra_tarball="/var/tmp/system_telemetry_collector.tar.gz"
+		if [[ -f "$ra_tarball" ]]; then
+			echo "RA tarball already exists at $ra_tarball. Skipping download."
+		else
+			echo "Downloading RA tarball..."
+			wget "$ra_url" -O "$ra_tarball"&>> /DNIF/install.log
+			if [[ $? -ne 0 ]]; then
+				echo "Download failed. Exiting."
+				exit 1
+			fi
+		fi
+		tar -xvf /var/tmp/system_telemetry_collector.tar.gz -C /DNIF/RA/ &>> /DNIF/install.log
+		
+		if [[ $os == "ubuntu" ]]; then
+			apt-get update && apt-get install -y \
+				python3 \
+				python3-pip \
+				smartmontools \
+				sysstat \
+				lm-sensors \
+				iproute2 \
+				net-tools \
+				sudo \
+				auditd \
+				iptables \
+				&& rm -rf /var/lib/apt/lists/*
+	
+		elif [[ $os == "centos" || $os == "rhel" ]]; then
+			dnf update -y && dnf install -y \
+				python3 \
+				python3-pip \
+				smartmontools \
+				sysstat \
+				lm_sensors \
+				iproute \
+				net-tools \
+				sudo \
+				audit \
+				iptables \
+				&& dnf clean all
+		fi
+
+		cd /DNIF/RA/bloo-ra/system_telemetry/
+		pip3 install -r requirements.txt
+
+       		DEFAULT_PORT=9200
+		PORT=""
+		echo -e "\nEnter Prometheus port number [Press Enter to use default: $DEFAULT_PORT]: \c"
+		read -r PORT
+		# If input is empty, use default
+		if [[ -z "$PORT" ]]; then
+			PORT=$DEFAULT_PORT
+		fi
+		# validate it's a valid port number (1–65535)
+		while ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; do
+			echo -e "Invalid port. Please enter a number between 1 and 65535 [Press Enter to use default: $DEFAULT_PORT]: \c"
+			read -r PORT
+			if [[ -z "$PORT" ]]; then
+		        	PORT=$DEFAULT_PORT
+		    	fi
+		done
+		echo "Using port: $PORT"
+  		python3 /DNIF/RA/bloo-ra/system_telemetry/config_loader.py --prometheus-host $REMOTE_ADMIN_IP --prometheus-port $PORT
+
+		# Add the new cron job
+		(crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+		echo "RA cron job added."
 	else
 	    echo "RA Cron job already exists. Skipping..."
 	fi
