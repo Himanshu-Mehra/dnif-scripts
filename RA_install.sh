@@ -467,68 +467,68 @@ function podman_install() {
 function install_zerotier() {
     # Check if zerotier-one is already installed
     if command -v zerotier-cli >/dev/null 2>&1; then
-        echo "ZeroTier is already installed. Skipping installation."
+        echo -e "\n[-] ZeroTier is already installed. Skipping installation."
         return 0
     fi
     
-    echo "Installing ZeroTier using the default script..."
+    echo -e "\n[-] Installing ZeroTier using the default script..."
 
     # Try the basic SSL-based installation
     if curl -s https://install.zerotier.com | sudo bash; then
         if command -v zerotier-cli >/dev/null 2>&1; then
-            echo "ZeroTier installed successfully using default method."
+            echo -e "\n[-] ZeroTier installed successfully using default method."
 
             NETWORK_ID=""
             while [[ ! "$NETWORK_ID" =~ ^[0-9a-f]{16}$ ]]; do
                 echo -e "\nEnter your 16-digit ZeroTier Network ID: \c"
                 read -r NETWORK_ID
                 if [[ ! "$NETWORK_ID" =~ ^[0-9a-f]{16}$ ]]; then
-                    echo "[ERROR] Invalid Network ID. It should be a 16-character hexadecimal string."
+                    echo -e "\n[ERROR] Invalid Network ID. It should be a 16-character hexadecimal string."
                 fi
             done
-            echo "You entered ZeroTier Network ID: $NETWORK_ID"
+            echo -e "\n[-] You entered ZeroTier Network ID: $NETWORK_ID"
 
             # Join the ZeroTier network
-            echo "Joining ZeroTier network: $NETWORK_ID"
+            echo -e "\n[-] Joining ZeroTier network: $NETWORK_ID"
             sudo zerotier-cli join "$NETWORK_ID" || { echo "[ERROR] Failed to join ZeroTier network."; }
             return 0
         else
-            echo "[ERROR] Installation script ran but ZeroTier is still not found."
+            echo -e "\n[ERROR] Installation script ran but ZeroTier is still not found."
         fi
     else
-        echo "Default installation method failed. Trying GPG-verified installation..."
+        echo -e "\n[-] Default installation method failed. Trying GPG-verified installation..."
     fi
 
     # Check if gpg is installed
     if ! command -v gpg >/dev/null 2>&1; then
-        echo "'gpg' not found. ZeroTier installation Failed!"
+        echo -e "\n[-] 'gpg' not found. ZeroTier installation Failed!"
     else
         # Try the GPG-verified method
         curl -s 'https://raw.githubusercontent.com/zerotier/ZeroTierOne/main/doc/contact%40zerotier.com.gpg' | gpg --import
         if z=$(curl -s 'https://install.zerotier.com/' | gpg); then
             echo "$z" | sudo bash
             if command -v zerotier-cli >/dev/null 2>&1; then
-                echo "ZeroTier installed successfully using GPG-verified method."
+                echo -e "\n[-] ZeroTier installed successfully using GPG-verified method."
 		
                 NETWORK_ID=""
 		while [[ ! "$NETWORK_ID" =~ ^[0-9a-f]{16}$ ]]; do
 		    echo -e "\nEnter your 16-digit ZeroTier Network ID: \c"
 		    read -r NETWORK_ID
 		    if [[ ! "$NETWORK_ID" =~ ^[0-9a-f]{16}$ ]]; then
-		        echo "[ERROR] Invalid Network ID. It should be a 16-character hexadecimal string."
+		        echo -e "\n[ERROR] Invalid Network ID. It should be a 16-character hexadecimal string."
 		    fi
 		done
-                echo "You entered ZeroTier Network ID: $NETWORK_ID"
+                echo -e "\n[-] You entered ZeroTier Network ID: $NETWORK_ID"
 
                 # Join the ZeroTier network
-                echo "Joining ZeroTier network: $NETWORK_ID"
+                echo -e "\n[-] Joining ZeroTier network: $NETWORK_ID"
                 sudo zerotier-cli join "$NETWORK_ID" || { echo "[ERROR] Failed to join ZeroTier network."; }
                 return 0
             else
-                echo "[ERROR] GPG-verified script ran but ZeroTier is not detected."
+                echo -e "\n[ERROR] GPG-verified script ran but ZeroTier is not detected."
             fi
         else
-            echo "[ERROR] GPG verification of the install script failed. ZeroTier not installed."
+            echo -e "\n[ERROR] GPG verification of the install script failed. ZeroTier not installed."
             return 1
         fi
     fi
