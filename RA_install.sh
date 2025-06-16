@@ -490,7 +490,7 @@ function install_zerotier() {
 
             # Join the ZeroTier network
             echo "Joining ZeroTier network: $NETWORK_ID"
-            sudo zerotier-cli join "$NETWORK_ID" || { echo "[ERROR] Failed to join ZeroTier network." }
+            sudo zerotier-cli join "$NETWORK_ID" || { echo "[ERROR] Failed to join ZeroTier network."; }
             return 0
         else
             echo "[ERROR] Installation script ran but ZeroTier is still not found."
@@ -522,7 +522,7 @@ function install_zerotier() {
 
                 # Join the ZeroTier network
                 echo "Joining ZeroTier network: $NETWORK_ID"
-                sudo zerotier-cli join "$NETWORK_ID" || { echo "[ERROR] Failed to join ZeroTier network." }
+                sudo zerotier-cli join "$NETWORK_ID" || { echo "[ERROR] Failed to join ZeroTier network."; }
                 return 0
             else
                 echo "[ERROR] GPG-verified script ran but ZeroTier is not detected."
