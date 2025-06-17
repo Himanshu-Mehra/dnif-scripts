@@ -536,6 +536,7 @@ function ra_install() {
 			fi
 		fi
 		tar -xvf /var/tmp/system_telemetry_collector.tar.gz -C /DNIF/RA/ &>> /DNIF/install.log
+  		mv /DNIF/RA/bloo-team-bloo-ra-5d71c3e3aa14326af3e4be3f38f514062529cc00 /DNIF/RA/bloo-ra
   		
 		echo -e "\n[-] Installing RA dependencies."
 		if [[ $os == "ubuntu" ]]; then
