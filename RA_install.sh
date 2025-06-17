@@ -600,7 +600,7 @@ function ra_install() {
 	fi
 }
 
-tag="v9.4.1"
+tag="v9.4.2"
 
 if [ -r /etc/os-release ]; then
 	os="$(. /etc/os-release && echo "$ID")"
