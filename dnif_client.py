@@ -212,9 +212,16 @@ class DnifClient:
             raise RuntimeError(
                 f"DNIF login returned {resp.status_code} for emailId={email!r}: {detail}\n"
                 f"Email was already confirmed valid by /lc/users/init, so this is almost "
-                f"certainly a wrong password -- double-check the DNIF_PASSWORD value loaded "
-                f"correctly from the credentials file (see the masked credentials summary "
-                f"printed at startup)."
+                f"certainly a wrong password.\n"
+                f"Computed cstPass for this run: {cst_pass}\n"
+                f"Compare that against the cstPass from a HAR capture of a browser login "
+                f"that actually succeeded for this account -- if they match, this exact "
+                f"password value has already been rejected by DNIF once before (password "
+                f"was likely changed since that capture, or the account is locked/disabled). "
+                f"If they DON'T match, the value loaded from the credentials file is not "
+                f"what you think it is -- re-check the file directly (cat it, don't just "
+                f"trust the masked summary) for a typo, stray character, or an old/wrong "
+                f"password left over from testing."
             )
         body = resp.json()
         if body.get("status") != "success":
